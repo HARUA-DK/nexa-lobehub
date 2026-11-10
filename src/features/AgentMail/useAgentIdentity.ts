@@ -9,6 +9,7 @@ import { useServerConfigStore } from '@/store/serverConfig';
 import { serverConfigSelectors } from '@/store/serverConfig/selectors';
 
 import { IDENTITY_CHANNELS } from './const';
+import { idsToMarkReadOnOpen } from './conversation';
 
 /** The channel to offer; one this deployment cannot fulfil would only fail on click. */
 export const useOpenableChannel = () => {
@@ -16,8 +17,6 @@ export const useOpenableChannel = () => {
 
   return IDENTITY_CHANNELS.find((channel) => providers.includes(channel.provider));
 };
-
-import { idsToMarkReadOnOpen } from './conversation';
 
 const accountsKey = (agentId: string): [string, string] | null =>
   agentId ? ['agent-accounts', agentId] : null;
