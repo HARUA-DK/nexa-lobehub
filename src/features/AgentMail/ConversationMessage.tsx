@@ -33,6 +33,11 @@ const ConversationMessage = memo<ConversationMessageProps>(
     const starred = Boolean(mail.starredAt);
     const recipients = [...(mail.to ?? []), ...(mail.cc ?? [])].map(formatAddress).join(', ');
     const when = dayjs(mail.deliveredAt).format('YYYY-MM-DD HH:mm');
+    // A display name alone hides the real sender, so the expanded mail keeps the address readable.
+    const senderAddress =
+      expanded && mail.fromName && mail.fromName !== mail.fromAddress
+        ? mail.fromAddress
+        : undefined;
 
     const menuItems = [
       onReply && { key: 'reply', label: t('identity.inbox.action.reply'), onClick: onReply },
@@ -122,6 +127,11 @@ const ConversationMessage = memo<ConversationMessageProps>(
         </Flexbox>
         {expanded && (
           <Flexbox gap={12} paddingBlock={'4px 12px'} paddingInline={12}>
+            {senderAddress && (
+              <Text data-testid={'mail-sender-address'} fontSize={12} type={'secondary'}>
+                {t('identity.inbox.detail.from')}: {senderAddress}
+              </Text>
+            )}
             <MailHtmlBody id={mail.id} text={mail.text ?? ''} />
             {(mail.attachments?.length ?? 0) > 0 && (
               <MailAttachments attachments={mail.attachments} mailId={mail.id} />

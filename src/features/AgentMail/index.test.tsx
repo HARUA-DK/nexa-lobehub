@@ -170,6 +170,16 @@ describe('AgentMail', () => {
     expect(service.markInboxRead).toHaveBeenCalledWith(['msg_a']);
   });
 
+  it('keeps a named sender address readable once the mail is expanded', async () => {
+    service.getMailConversation.mockResolvedValue([
+      mailOf('msg_a', { fromAddress: 'real.sender@x.com', fromName: 'Support' }),
+    ]);
+    page('/agent/agt_1/mail/msg_a');
+
+    const line = await screen.findByTestId('mail-sender-address');
+    expect(line).toHaveTextContent('real.sender@x.com');
+  });
+
   it('switches the list, the count and the open message to the chosen mailbox', async () => {
     page('/agent/agt_1/mail/msg_a');
     expect(await screen.findByText('Full body of msg_a')).toBeInTheDocument();
