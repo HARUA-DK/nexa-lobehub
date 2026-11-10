@@ -22,6 +22,7 @@ import type {
   AgentAccountRef,
   AgentAccountSendResult,
 } from '@lobechat/types';
+import pMap from 'p-map';
 
 import { AgentAccountError } from '../errors';
 
@@ -166,8 +167,12 @@ export const createAgentMailProvider = (
       (attachment) => !indexes || indexes.includes(attachment.index),
     );
 
-    const loaded = await Promise.all(
-      wanted.map(async (attachment) => {
+    // A mail can carry an arbitrary number of attachments and every byte range
+    // costs a request, so the downloads are fanned out in a bounded batch
+    // instead of opening one connection per attachment.
+    const loaded = await pMap(
+      wanted,
+      async (attachment) => {
         const bytes = await client.downloadAttachment(providerMessageId, attachment.index);
         if (!bytes) return undefined;
         return {
@@ -175,7 +180,8 @@ export const createAgentMailProvider = (
           contentType: attachment.contentType || bytes.contentType,
           filename: attachment.filename ?? `attachment-${attachment.index}`,
         };
-      }),
+      },
+      { concurrency: 4 },
     );
 
     return loaded.filter((item): item is NonNullable<typeof item> => !!item);
