@@ -208,6 +208,16 @@ describe('read state', () => {
     expect(await model.countUnread({ agentId })).toBe(0);
   });
 
+  it('mark all read clears a request to see mail unread', async () => {
+    const mail = await seed();
+    await model.markUnread([mail.id]);
+
+    await new AgentInboxModel(serverDB, userId).markAllRead(agentId);
+
+    expect((await model.findById(mail.id))?.isUnread).toBe(false);
+    expect(await model.countUnread({ agentId })).toBe(0);
+  });
+
   it('counts sent mail as read until asked otherwise', async () => {
     const sent = await seed({ direction: 'outbound', fromAddress: 'agent@lobe.id' });
 

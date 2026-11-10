@@ -109,7 +109,8 @@ class AgentAccountService {
 
   /** Unread across the whole inbox, not just the page a list happened to load. */
   getInboxUnreadCount = async (agentId: string, accountId?: string): Promise<number> =>
-    (await lambdaClient.agentAccount.inbox.unreadCount.query({ accountId, agentId })).unreadCount;
+    // Unread as a person sees it, including mail they marked unread again.
+    (await lambdaClient.agentAccount.mail.counts.query({ accountId, agentId })).unread;
 
   getInboxMessage = async (id: string): Promise<AgentInboxMessage> =>
     toInboxMessage(await lambdaClient.agentAccount.inbox.get.query({ id }));

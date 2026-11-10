@@ -505,7 +505,32 @@ export class AgentInboxModel {
       )
       .returning({ id: agentInboxMessages.id });
 
-    return rows.length;
+    // A person's "mark unread" is cleared too, or those rows keep their dot.
+    const cleared = await this.db
+      .update(agentMails)
+      .set({ markedUnreadAt: null, updatedAt: new Date() })
+      .where(
+        and(
+          isNotNull(agentMails.markedUnreadAt),
+          inArray(
+            agentMails.id,
+            this.db
+              .select({ id: agentInboxMessages.sourceId })
+              .from(agentInboxMessages)
+              .where(
+                and(
+                  eq(agentInboxMessages.sourceType, 'mail'),
+                  eq(agentInboxMessages.agentId, agentId),
+                  accountId ? eq(agentInboxMessages.accountId, accountId) : undefined,
+                  this.ownership(),
+                ),
+              ),
+          ),
+        ),
+      )
+      .returning({ id: agentMails.id });
+
+    return rows.length + cleared.length;
   };
 
   // --------------- Reads (credential-free, always) ---------------

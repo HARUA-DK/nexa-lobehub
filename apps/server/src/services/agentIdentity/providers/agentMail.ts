@@ -173,7 +173,9 @@ export const createAgentMailProvider = (
     const loaded = await pMap(
       wanted,
       async (attachment) => {
-        const bytes = await client.downloadAttachment(providerMessageId, attachment.index);
+        // Only a confirmed 404 is skipped; any other failure throws, so the send
+        // fails and can be retried rather than going out without the file.
+        const bytes = await client.fetchAttachment(providerMessageId, attachment.index);
         if (!bytes) return undefined;
         return {
           content: bytes.buffer.toString('base64'),
