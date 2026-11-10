@@ -14,7 +14,11 @@ import type { AgentMailView } from '@/services/agentAccount';
 import { isMobileSurface } from '@/utils/mobileSurface';
 import { StyleSheet } from '@/utils/styles';
 
-import { findNeighbors, nextSelectionAfterRemoval } from './conversation';
+import {
+  type ConversationNeighbors,
+  findNeighbors,
+  nextSelectionAfterRemoval,
+} from './conversation';
 import InboxMessageDetail, { type InboxMessageDetailProps } from './InboxMessageDetail';
 import InboxSection from './InboxSection';
 import MailboxCard from './MailboxCard';
@@ -55,7 +59,13 @@ const MailPage = ({ agentId, disabled }: AgentMailProps) => {
   const listAgentId = mailbox.isLoading && !mailbox.data ? '' : agentId;
   const list = useAgentInbox(listAgentId, mailbox.current?.id);
   const unreadCount = useAgentInboxUnreadCount(listAgentId, mailbox.current?.id);
-  const neighbors = messageId ? findNeighbors(list.data ?? [], messageId) : {};
+  // A sent mail has no list row; one reached by reseating keeps the neighbours it left.
+  const anchorRef = useRef<{ id?: string; neighbors: ConversationNeighbors }>({ neighbors: {} });
+  const found = messageId ? findNeighbors(list.data ?? [], messageId) : {};
+  const neighbors =
+    found.nextId || found.previousId || anchorRef.current.id !== messageId
+      ? found
+      : anchorRef.current.neighbors;
   // Read once the row has left the list, by which point it has no neighbours left.
   const removalRef = useRef(neighbors);
 
@@ -127,7 +137,10 @@ const MailPage = ({ agentId, disabled }: AgentMailProps) => {
         if (pagesBefore) void list.mutate(pagesBefore, { revalidate: false });
       };
     },
-    onReseated: selectAfterRemoval,
+    onReseated: (id) => {
+      anchorRef.current = { id, neighbors };
+      selectAfterRemoval(id);
+    },
     onRestored: (id) => navigate(urlJoin(mailPath, id), { replace: true }),
     onServerChanged: () => Promise.all([list.mutate(), unreadCount.mutate()]),
   };

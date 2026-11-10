@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   computeAgentMailSignature,
   LobeMailApiClient,
+  LobeMailApiError,
   parseAgentMailSignature,
   verifyAgentMailSignature,
 } from './api';
@@ -259,5 +260,26 @@ describe('loop protection', () => {
     expect(
       checkInboundEmail({ from: 'bot@lobe.id', inboxAddress: 'bot@lobe.id', subject: 'x' }).reason,
     ).toBe('self_addressed');
+  });
+});
+
+describe('LobeMailApiClient.fetchAttachment', () => {
+  const clientWith = (status: number) =>
+    new LobeMailApiClient({
+      apiKey: 'am_test',
+      fetchImpl: (async () => new Response(status === 200 ? 'bytes' : '', { status })) as never,
+    });
+
+  it('returns the bytes', async () => {
+    const file = await clientWith(200).fetchAttachment('m', 0);
+    expect(file?.buffer.toString()).toBe('bytes');
+  });
+
+  it('reports a missing attachment as gone', async () => {
+    expect(await clientWith(404).fetchAttachment('m', 0)).toBeNull();
+  });
+
+  it('throws on a temporary failure, so it stays retryable', async () => {
+    await expect(clientWith(503).fetchAttachment('m', 0)).rejects.toBeInstanceOf(LobeMailApiError);
   });
 });

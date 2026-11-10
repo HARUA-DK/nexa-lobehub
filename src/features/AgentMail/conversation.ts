@@ -61,6 +61,17 @@ export const buildConversationRows = (
   return rows;
 };
 
+/**
+ * Where the URL moves when the mail it names is trashed but its conversation
+ * lives on: an inbox item when one survives, since only those are list rows.
+ */
+export const reseatTarget = (
+  remaining: { id: string; inboxMessageId: null | string }[],
+): string | undefined => {
+  const survivor = remaining.findLast((row) => row.inboxMessageId) ?? remaining.at(-1);
+  return survivor ? (survivor.inboxMessageId ?? survivor.id) : undefined;
+};
+
 type ListRow = Pick<AgentInboxMessageSummary, 'accountId' | 'id' | 'threadKey'>;
 
 const conversationKey = (row: ListRow) =>

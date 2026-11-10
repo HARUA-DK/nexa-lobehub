@@ -8,7 +8,23 @@ import {
   initialExpandedIds,
   initialFocusId,
   nextSelectionAfterRemoval,
+  reseatTarget,
 } from './conversation';
+
+describe('reseatTarget', () => {
+  it('prefers a surviving inbox row over a newer sent mail', () => {
+    expect(
+      reseatTarget([
+        { id: 'm1', inboxMessageId: 'i1' },
+        { id: 'sent', inboxMessageId: null },
+      ]),
+    ).toBe('i1');
+  });
+
+  it('falls back to the sent mail when nothing received survives', () => {
+    expect(reseatTarget([{ id: 'sent', inboxMessageId: null }])).toBe('sent');
+  });
+});
 
 const mail = (id: string, isUnread = false) => ({ id, isUnread });
 const row = (id: string, threadKey: null | string = null) => ({

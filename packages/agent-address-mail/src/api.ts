@@ -237,6 +237,29 @@ export class LobeMailApiClient {
     });
 
   /**
+   * An attachment's bytes for a person downloading it: `null` only when the
+   * provider no longer holds them (404), so a temporary failure stays
+   * retryable instead of reading as expired. Throws {@link LobeMailApiError}.
+   */
+  fetchAttachment = async (
+    messageId: string,
+    index: number,
+  ): Promise<null | { buffer: Buffer; contentType?: string }> => {
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/v1/messages/${encodeURIComponent(messageId)}/attachments/${index}`,
+      { headers: { Authorization: `Bearer ${this.apiKey}` } },
+    );
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new LobeMailApiError(response.status, `Attachment download failed: ${response.status}`);
+    }
+    return {
+      buffer: Buffer.from(await response.arrayBuffer()),
+      contentType: response.headers.get('content-type') ?? undefined,
+    };
+  };
+
+  /**
    * Download an attachment's bytes. Never throws — attachments are optional
    * context and a failure must not fail the whole inbound turn.
    */

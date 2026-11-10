@@ -331,7 +331,7 @@ export const createAgentMailProvider = (
         if (error instanceof LobeMailApiError && error.status === 404) return null;
         throw error;
       }
-      return client.downloadAttachment(providerMessageId, index);
+      return client.fetchAttachment(providerMessageId, index);
     },
 
     getMessageHtml: async (ref: AgentAccountRef, providerMessageId: string) => {

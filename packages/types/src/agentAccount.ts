@@ -422,7 +422,7 @@ export interface AgentAccountProvider<K extends AgentAccountKind = AgentAccountK
   deleteMessage?: (ref: AgentAccountRef, providerMessageId: string) => Promise<void>;
   /**
    * The bytes of one attachment, or `null` once the provider no longer holds
-   * them. Optional: a provider that stores no messages has nothing to serve.
+   * them. Throws on a failure worth retrying. Optional: a provider that stores no messages has nothing to serve.
    */
   downloadAttachment?: (
     ref: AgentAccountRef,

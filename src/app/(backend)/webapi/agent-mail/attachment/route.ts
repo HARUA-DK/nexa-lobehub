@@ -36,7 +36,14 @@ export const GET = checkAuth(async (req, { userId, serverDB }) => {
   });
   const mailbox = new AgentMailboxService(serverDB, userId, { accounts, workspaceId });
 
-  const file = await mailbox.readAttachment(id, index);
+  let file: Awaited<ReturnType<AgentMailboxService['readAttachment']>>;
+  try {
+    file = await mailbox.readAttachment(id, index);
+  } catch (error) {
+    // Not "expired": the bytes may well be there, so the reader can retry.
+    console.error('[agent-mail:attachment] download failed', error);
+    return jsonError('unavailable', 502);
+  }
   if (!file) return jsonError('expired', 404);
 
   const name = file.filename || `attachment-${index}`;

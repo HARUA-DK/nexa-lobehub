@@ -7,6 +7,8 @@ import useSWR from 'swr';
 
 import { agentAccountService, type AgentMailView } from '@/services/agentAccount';
 
+import { reseatTarget } from './conversation';
+
 /** Long enough to read the toast and reach its button. */
 const UNDO_DURATION_MS = 8000;
 
@@ -114,8 +116,7 @@ export const useConversation = (id: string, options: UseConversationOptions) => 
       await mutate(remaining, { revalidate: false });
       if (emptied) optionsRef.current.onEmptied(ids);
       else if (rows.some((row) => row.id === id || row.inboxMessageId === id)) {
-        const survivor = remaining.at(-1)!;
-        optionsRef.current.onReseated(survivor.inboxMessageId ?? survivor.id);
+        optionsRef.current.onReseated(reseatTarget(remaining)!);
       }
 
       try {
