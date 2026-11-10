@@ -278,9 +278,13 @@ export function defineConfig(config: CustomNextConfig) {
       outputFileTracingIncludes: config.outputFileTracingIncludes,
     }),
     reactStrictMode: true,
-    // Old clients keep their image URLs; App routes take precedence over this fallback.
+    // Netlify handles legacy public image URLs in netlify.toml instead.
+    // Elsewhere, App routes take precedence over this fallback.
     rewrites: async () => ({
-      fallback: [{ destination: '/static/app-images/:path*', source: '/app-images/:path*' }],
+      fallback:
+        process.env.NETLIFY === 'true'
+          ? []
+          : [{ destination: '/static/app-images/:path*', source: '/app-images/:path*' }],
     }),
     redirects: async () => [
       // Sitemap generation lives on the landing site; keep legacy app sitemap URLs crawlable.

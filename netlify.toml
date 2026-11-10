@@ -1,9 +1,18 @@
 [build]
-command = "rm -rf .next node_modules/.cache && pnpm run build"
+command = "node scripts/netlifyBuild.mjs"
 publish = ".next"
 
 [build.environment]
-NODE_OPTIONS = "--max-old-space-size=4096"
+NODE_VERSION = "24.16.0"
+BUN_VERSION = "1.4.4"
+# pnpm is pinned by packageManager; upstream explicitly disables the root lockfile.
+PNPM_FLAGS = "--no-frozen-lockfile"
+NODE_OPTIONS = "--max-old-space-size=7168"
 
-[template.environment]
-OPENAI_API_KEY = "set your OpenAI API Key"
+# Next.js rewrites to public files are not supported by the OpenNext adapter.
+# Keep legacy image URLs at the Netlify layer; current clients use /static/app-images.
+[[redirects]]
+from = "/app-images/*"
+to = "/static/app-images/:splat"
+status = 200
+force = false
