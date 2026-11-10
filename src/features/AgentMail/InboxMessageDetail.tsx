@@ -119,9 +119,7 @@ const InboxMessageDetail = memo<InboxMessageDetailProps>(
       return (
         <Center gap={12} paddingBlock={48}>
           <Text type={'secondary'}>{t('identity.inbox.detail.gone')}</Text>
-          <Button size={'small'} onClick={onBack}>
-            {t('identity.inbox.detail.backToList')}
-          </Button>
+          <Button onClick={onBack}>{t('identity.inbox.detail.backToList')}</Button>
         </Center>
       );
     }
