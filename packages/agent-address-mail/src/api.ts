@@ -136,6 +136,11 @@ export class LobeMailApiClient {
         const parsed = JSON.parse(body) as EmailApiError;
         code = parsed.error?.code;
         detail = parsed.error?.message || parsed.error?.code || body;
+        // A 422 only says "Invalid request"; the issues name the field at fault.
+        const issues = parsed.error?.issues
+          ?.map((issue) => (issue.path ? `${issue.path}: ${issue.message}` : issue.message))
+          .filter(Boolean);
+        if (issues?.length) detail = `${detail} (${issues.join('; ')})`;
       } catch {
         // keep the raw body
       }
@@ -296,7 +301,8 @@ export class LobeMailApiClient {
     },
   ): Promise<EmailMessageDetail> =>
     this.request<EmailMessageDetail>(`/v1/inboxes/${encodeURIComponent(inboxId)}/messages`, {
-      body: JSON.stringify(input),
+      // The send route takes a recipient list and rejects a bare address with a 422.
+      body: JSON.stringify({ ...input, to: [input.to] }),
       method: 'POST',
     });
 
