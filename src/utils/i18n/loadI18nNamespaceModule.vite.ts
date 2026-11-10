@@ -13,6 +13,8 @@ type NamespaceLoaderMap = Record<string, () => Promise<NamespaceModule>>;
 // matter which app's vite root builds this module (repo root, apps/workbench).
 const defaultLoaders = import.meta.glob([
   '../../../packages/locales/src/default/*.ts',
+  '!../../../packages/locales/src/default/*.test.ts',
+  '!../../../packages/locales/src/default/*.spec.ts',
   '!../../../packages/locales/src/default/*.vite.ts',
   '!../../../packages/locales/src/default/index.ts',
 ]) as NamespaceLoaderMap;

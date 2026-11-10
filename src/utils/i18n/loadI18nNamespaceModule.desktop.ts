@@ -8,6 +8,8 @@ type NamespaceLoaderMap = Record<string, () => Promise<NamespaceModule>>;
 
 const defaultLoaders = import.meta.glob([
   '/packages/locales/src/default/*.ts',
+  '!/packages/locales/src/default/*.test.ts',
+  '!/packages/locales/src/default/*.spec.ts',
   '!/packages/locales/src/default/*.vite.ts',
   '!/packages/locales/src/default/index.ts',
 ]) as NamespaceLoaderMap;
