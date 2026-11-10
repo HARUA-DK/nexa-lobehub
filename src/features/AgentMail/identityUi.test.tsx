@@ -154,6 +154,26 @@ describe('InboxMessageDetail', () => {
     );
   });
 
+  it('rolls back only the mails a failed mark-read changed', async () => {
+    service.getMailConversation.mockResolvedValue([
+      mailRow('read'),
+      mailRow('unread', { isUnread: true }),
+    ]);
+    service.markMailRead.mockRejectedValue(new Error('nope'));
+    detailProps.onReadStateChange.mockClear();
+
+    fresh(<InboxMessageDetail {...detailProps} id={'unread'} />);
+
+    await waitFor(() => expect(service.markMailRead).toHaveBeenCalledWith(['unread']));
+    await waitFor(() =>
+      expect(detailProps.onReadStateChange).toHaveBeenLastCalledWith(
+        [expect.objectContaining({ id: 'unread' })],
+        true,
+      ),
+    );
+    service.markMailRead.mockReset();
+  });
+
   it('hands off to the page when trashing empties the conversation', async () => {
     service.getMailConversation.mockResolvedValue([mailRow('m')]);
     service.trashMail.mockResolvedValue({ count: 1, ids: ['m'] });

@@ -88,7 +88,10 @@ export const useConversation = (id: string, options: UseConversationOptions) => 
   );
 
   const setUnread = useCallback(
-    (rows: AgentMailView[], unread: boolean) => {
+    (all: AgentMailView[], unread: boolean) => {
+      // Only mails that actually flip, so a rollback can flip exactly those back.
+      const rows = all.filter((row) => row.isUnread !== unread);
+      if (rows.length === 0) return Promise.resolve();
       const ids = rows.map((row) => row.id);
       optionsRef.current.onReadStateChange(rows, unread);
 
